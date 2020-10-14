@@ -16,6 +16,7 @@ import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.parser.models.RefType;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,14 +82,14 @@ public class InlineModelResolver {
                                         Schema model = mediaType.getSchema();
                                         if (model.getProperties() != null && model.getProperties().size() > 0) {
                                             flattenProperties(model.getProperties(), pathname);
-                                            String modelName = resolveModelName(model.getTitle(), "body");
+                                            String modelName = resolveModelName(model.getTitle(), StringUtils.capitalize(operation.getOperationId()) + "Request");
                                             mediaType.setSchema(new Schema().$ref(modelName));
                                             addGenerated(modelName, model);
                                             openAPI.getComponents().addSchemas(modelName, model);
                                         } else if (model instanceof ComposedSchema) {
                                             flattenComposedSchema(model, pathname);
                                             if (model.get$ref() == null) {
-                                                String modelName = resolveModelName(model.getTitle(), "body");
+                                                String modelName = resolveModelName(model.getTitle(), StringUtils.capitalize(operation.getOperationId()) + "Request");
                                                 mediaType.setSchema(this.makeRefProperty(modelName, model));
                                                 addGenerated(modelName, model);
                                                 openAPI.getComponents().addSchemas(modelName, model);
@@ -99,7 +100,7 @@ public class InlineModelResolver {
                                             if (isObjectSchema(inner)) {
                                                 if (inner.getProperties() != null && inner.getProperties().size() > 0) {
                                                     flattenProperties(inner.getProperties(), pathname);
-                                                    String modelName = resolveModelName(inner.getTitle(), "body");
+                                                    String modelName = resolveModelName(inner.getTitle(), StringUtils.capitalize(operation.getOperationId()) + "Request");
                                                     String existing = matchGenerated(inner);
                                                     if (existing != null) {
                                                         am.setItems(new Schema().$ref(existing));
@@ -186,7 +187,10 @@ public class InlineModelResolver {
                                             Schema mediaSchema = media.getSchema();
                                             if (isObjectSchema(mediaSchema)) {
                                                 if (mediaSchema.getProperties() != null && mediaSchema.getProperties().size() > 0 || mediaSchema instanceof ComposedSchema) {
-                                                    String modelName = resolveModelName(mediaSchema.getTitle(), "inline_response_" + key);
+                                                    String operationIdForModel = StringUtils.capitalize(operation.getOperationId());
+                                                    String modelName = resolveModelName(mediaSchema.getTitle(), Integer.parseInt(key) > 399 ?
+                                                        operationIdForModel + StringUtils.deleteWhitespace(response.getDescription()) :
+                                                        operationIdForModel + "Response");
                                                     String existing = matchGenerated(mediaSchema);
                                                     if (existing != null) {
                                                         media.setSchema(this.makeRefProperty(existing, mediaSchema));
