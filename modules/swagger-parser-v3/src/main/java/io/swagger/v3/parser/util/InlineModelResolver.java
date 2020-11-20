@@ -188,9 +188,19 @@ public class InlineModelResolver {
                                             if (isObjectSchema(mediaSchema)) {
                                                 if (mediaSchema.getProperties() != null && mediaSchema.getProperties().size() > 0 || mediaSchema instanceof ComposedSchema) {
                                                     String operationIdForModel = StringUtils.capitalize(operation.getOperationId());
-                                                    String modelName = resolveModelName(mediaSchema.getTitle(), Integer.parseInt(key) > 399 ?
-                                                        operationIdForModel + StringUtils.deleteWhitespace(response.getDescription()) :
-                                                        operationIdForModel + "Response");
+                                                    // append Conflict or response to model name, BadRequest only for 400 since it is generic across apis.
+                                                    String modelSuffix;
+                                                    switch (key) {
+                                                        case "400":
+                                                            modelSuffix = "BadRequest";
+                                                            break;
+                                                        case "409":
+                                                            modelSuffix = "Conflict";
+                                                            break;
+                                                        default:
+                                                            modelSuffix = "Response";
+                                                    }
+                                                    String modelName = resolveModelName(mediaSchema.getTitle(), key.equals("400") ? modelSuffix : operationIdForModel + modelSuffix);
                                                     String existing = matchGenerated(mediaSchema);
                                                     if (existing != null) {
                                                         media.setSchema(this.makeRefProperty(existing, mediaSchema));
