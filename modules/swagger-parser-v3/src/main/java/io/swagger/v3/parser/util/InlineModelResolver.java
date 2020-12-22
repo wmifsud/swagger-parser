@@ -201,7 +201,7 @@ public class InlineModelResolver {
                                                             modelSuffix = "Response";
                                                     }
                                                     String modelName = resolveModelName(mediaSchema.getTitle(), key.equals("400") ? modelSuffix : operationIdForModel + modelSuffix);
-                                                    String existing = modelSuffix.equals("Conflict") ? null : matchGenerated(mediaSchema);
+                                                    String existing = modelSuffix.equals("Conflict") || modelSuffix.equals("Response") ? null : matchGenerated(mediaSchema);
                                                     if (existing != null) {
                                                         media.setSchema(this.makeRefProperty(existing, mediaSchema));
                                                     } else {
